@@ -66,8 +66,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-let userLat = null;
-let userLon = null;
+let userLat = -15.75788188144926;
+let userLon = -47.868969186489906;
 let selectedProducts = [];
 let maxDistance = 50; // Distância máxima padrão em km
 

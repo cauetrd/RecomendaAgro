@@ -46,16 +46,45 @@ RecomendaAgro é um sistema web para recomendação de produtores locais de alim
    python csv.generator.py
    ```
 
-## Formas de filtragem
+## Explicação de Funcionalidades
 
--
+- Obtenção das Coordenadas do Usuário
+
+- - Tenta-se obter a geolocalização do usuário através do navegador
+
+- - Caso não seja possível obter a geolocalização do usuário, é assumido que o usuário esteja no prédio de CIC/EST na Universidade de Brasília
+
+- Cálculo de Distância
+
+- - O cálculo de distância entre a localização do usuário e cada produtor é feita utilizando a fórmula de Harvesine.
+
+- - A distância calculada é cada objeto da lista de objetos da lista de produtores.
+
+- Filtragens
+
+- - O usuário seleciona quais produtos deseja adquirir.
+
+- - O usuário seleciona qual a distância máxima entre ele e os possíveis produtores.
+
+- - São filtrados os produtores para que apareçam apenas os que estão dentro da distância permitida e vendem os produtos desejados pelo usuário.
+
+- - O usuário escolhe como deseja ordenar a lista de produtores, por distância, por nota média do produtor, ou por uma ordenação inteligente
+
+- - - A ordenação inteligente usa uma fórmula para ordenar os produtores buscando relacionar distância e nota média, tentando minimizar distância e maximizar nota média.
+
+- Recomendação com IA
+
+- - A recomendação de IA é feita por meio do algoritmo de KNN, com rota própria.
+
+- - O algoritmo de KNN busca outros usuários com avaliações parecidas à do usuário e utiliza essas avaliações para prever qual nota o usuário daria para produtores ainda não avaliados.
 
 ## Observações
 
-- O sistema utiliza geolocalização do navegador para mostrar produtores próximos.
+- O id de usuário escolhido como mock é o id 3.
 - As recomendações de IA são feitas via `/api/knn_user`.
 - Para testar recomendações, altere o `id_usuario` no frontend ou envie POST manualmente.
 
 ---
 
 Desenvolvido para fins acadêmicos.
+Cauê de Macedo Britto Trindade de Sousa - 231019003
