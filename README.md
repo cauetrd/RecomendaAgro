@@ -1,6 +1,7 @@
 # RecomendaAgro
 
 RecomendaAgro é um sistema web para recomendação de produtores locais de alimentos, desenvolvido como Trabalho 1 da disciplina IIA.
+Link para o repositório: https://github.com/cauetrd/RecomendaAgro
 
 ## Funcionalidades
 
