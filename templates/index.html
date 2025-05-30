@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mapa de Produtores Locais</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: #f6f8fa;
+        color: #222;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 32px 0 18px 0;
+        font-size: 2.2rem;
+        color: #2e7d32;
+        letter-spacing: 1px;
+        font-weight: 700;
+        text-shadow: 0 2px 8px #e0f2f1;
+      }
+
+      #map {
+        height: 340px;
+        width: 100%;
+        max-width: 600px;
+        border: none;
+        border-radius: 16px;
+        margin: 0 auto 28px auto;
+        box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.13);
+        background: #fff;
+      }
+
+      .slider-container {
+        max-width: 420px;
+        margin: 0 auto 24px auto;
+        text-align: center;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px 0 rgba(44, 62, 80, 0.07);
+        padding: 18px 24px 10px 24px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: #388e3c;
+        margin-top: 8px;
+      }
+
+      fieldset {
+        border: none;
+        background: #f1f8e9;
+        border-radius: 10px;
+        padding: 18px 14px 10px 14px;
+        margin-bottom: 0;
+        box-shadow: 0 1px 6px 0 rgba(44, 62, 80, 0.05);
+      }
+
+      legend {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #388e3c;
+        margin-bottom: 10px;
+      }
+
+      #produtosForm label {
+        background: #fff;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        padding: 7px 13px 7px 9px;
+        cursor: pointer;
+        transition: box-shadow 0.2s, border 0.2s;
+        font-size: 1rem;
+        box-shadow: 0 1px 4px 0 rgba(44, 62, 80, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #produtosForm label:hover {
+        border: 1.5px solid #388e3c;
+        box-shadow: 0 2px 8px 0 rgba(56, 142, 60, 0.08);
+        background: #e8f5e9;
+      }
+
+      #produtosForm input[type="checkbox"] {
+        accent-color: #388e3c;
+        width: 18px;
+        height: 18px;
+      }
+
+      .slider-container label {
+        font-size: 1.08rem;
+        color: #388e3c;
+        font-weight: 500;
+      }
+
+      button {
+        background: linear-gradient(90deg, #43a047 0%, #66bb6a 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-size: 1.08rem;
+        font-weight: 600;
+        margin: 0 8px 10px 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px 0 rgba(56, 142, 60, 0.1);
+        transition: background 0.2s, transform 0.15s;
+      }
+
+      button:hover {
+        background: linear-gradient(90deg, #388e3c 0%, #43a047 100%);
+        transform: translateY(-2px) scale(1.03);
+      }
+
+      #resultado {
+        margin: 24px auto 0 auto;
+        font-weight: 500;
+        font-size: 1.08rem;
+        color: #2e7d32;
+        background: #e8f5e9;
+        border-radius: 10px;
+        padding: 16px 18px;
+        max-width: 420px;
+        min-height: 32px;
+        box-shadow: 0 1px 8px 0 rgba(44, 62, 80, 0.07);
+      }
+
+      ul {
+        padding-left: 18px;
+        margin: 10px 0 0 0;
+      }
+
+      @media (max-width: 1500px) {
+        #map {
+          max-width: 98vw;
+          height: 300px;
+        }
+        .slider-container,
+        #resultado {
+          max-width: 98vw;
+          padding: 10px 4vw;
+        }
+        fieldset {
+          padding: 10px 2vw 6px 2vw;
+        }
+      }
+
+      @media (max-width: 500px) {
+        h1 {
+          font-size: 1.3rem;
+        }
+        #map {
+          height: 280px;
+        }
+        .slider-container,
+        #resultado {
+          font-size: 0.98rem;
+        }
+        #produtosForm label {
+          font-size: 0.97rem;
+          padding: 6px 7px 6px 6px;
+        }
+      }
+    </style>
+  </head>
+
+  <div class="slider-container" style="margin-bottom: 20px">
+    <form id="produtosForm">
+      <fieldset>
+        <legend>Selecione os produtos:</legend>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <label
+            ><input type="checkbox" name="produto" value="Abacate" />
+            Abacate</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Abóbora" />
+            Abóbora</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Abobrinha" />
+            Abobrinha</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Acelga" />
+            Acelga</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Alface" />
+            Alface</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Alho" /> Alho</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Batata doce" /> Batata
+            doce</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Beterraba" />
+            Beterraba</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Brócolis" />
+            Brócolis</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Cebola" />
+            Cebola</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Cebolinha" />
+            Cebolinha</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Cenoura" />
+            Cenoura</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Chuchu" />
+            Chuchu</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Coentro" />
+            Coentro</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Couve-flor" />
+            Couve-flor</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Couve" /> Couve</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Espinafre" />
+            Espinafre</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Goiaba" />
+            Goiaba</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Hortelã" />
+            Hortelã</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Inhame" />
+            Inhame</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Limão" /> Limão</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Manjericão" />
+            Manjericão</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Maracujá" />
+            Maracujá</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Milho verde" /> Milho
+            verde</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Morango" />
+            Morango</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Pepino" />
+            Pepino</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Pimentão" />
+            Pimentão</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Repolho verde" />
+            Repolho verde</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Repolho roxo" />
+            Repolho roxo</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Salsa" /> Salsa</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Tangerina" />
+            Tangerina</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Tomate" />
+            Tomate</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Vagem" /> Vagem</label
+          >
+          <label
+            ><input type="checkbox" name="produto" value="Banana" />
+            Banana</label
+          >
+        </div>
+      </fieldset>
+    </form>
+  </div>
+
+  <script>
+    function getProdutosSelecionados() {
+      const checkboxes = document.querySelectorAll('input[name="produto"]');
+      const selecionados = [];
+
+      checkboxes.forEach((checkbox) => {
+        if (checkbox.checked) {
+          selecionados.push(checkbox.value);
+        }
+      });
+
+      return selecionados;
+    }
+  </script>
+
+  <div style="text-align: center">
+    <button onclick="window.location.reload()">Limpar seleção</button>
+    <button onclick="order = 'qualidade'; ShowMatchingProdutos()">
+      Ordenar por qualidade de atendimento
+    </button>
+    <button onclick="order = 'distancia'; ShowMatchingProdutos()">
+      Ordenar por distância
+    </button>
+    <button onclick="order = 'inteligente'; ShowMatchingProdutos()">
+      Ordenar por distância e qualidade
+    </button>
+    <button onclick="showKNN()">Recomendação com IA</button>
+</div>
+
+<div id = "resultado2"></div>
+  <script>
+
+        const resultadoDiv = document.getElementById("resultado2");
+        function showKNN() {
+    fetch("/api/knn_user", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+        id_usuario: 3, // ID do usuário, você pode substituir por um valor dinâmico
+        n: 15, // Número de recomendações
+        // Você pode adicionar mais parâmetros se necessário
+        }),
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Erro ao buscar recomendações.");
+      }
+      return response.json();
+    })
+    .then((data) => {
+        console.log("Dados recebidos:", data);
+        data.forEach((item) => {
+            // Encontra o produtor correspondente pelo lat/lon
+            const produtor = producers.find(
+                (p) => p.lat === item.latitude_produtor && p.lon === item.longitude_produtor
+            );
+            if (produtor) {
+                item.Nome = produtor.Nome;
+                item.Sigla = produtor.Sigla;
+                item.Distanca = produtor.Distancia;
+            } else {
+                item.Nome = "Produtor desconhecido";
+                item.Sigla = "";
+            }
+        });
+        console.log("Recomendações recebidas:", data);
+        // Remove duplicados pelo latitude/longitude do produtor
+        const uniqueData = [];
+        const seen = new Set();
+        data.forEach(item => {
+          const key = `${item.latitude_produtor},${item.longitude_produtor}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueData.push(item);
+          }
+        });
+        uniqueData.sort((a, b) => b.nota - a.nota);
+        data = uniqueData;
+        resultadoDiv.innerHTML = "<div>Recomendações de IA:</div><ul style='columns:1;-webkit-columns:1;-moz-columns:1;'>" +
+          data.map(
+            (p) => {
+              const distancia = typeof p.Distancia === "number" ? p.Distancia : 0;
+              const nota = typeof p.nota === "number" ? p.nota : 0;
+              return `<li>${p.Nome} (${p.Sigla}) espera-se que você dê nota ${nota.toFixed(
+                2
+              )}</li>`;
+            }
+          ).join("") +
+          "</ul>";
+        // TODO: Usar os dados recebidos para atualizar a interface
+
+        ShowResultadoKNN(data);
+    })
+    .catch((error) => {
+      console.error("Erro:", error);
+    });
+
+}
+
+    </script>
+
+    <script>
+            function ShowResultadoKNN(data) {
+        const resultadoDiv = document.getElementById("resultado");
+      data.map()
+      resultadoDiv.innerHTML = "<div>Recomendações de IA:</div><ul style='columns:1;-webkit-columns:1;-moz-columns:1;'> 
+        +
+          data
+            .map(
+              (p) =>
+                `<li>${p.Nome} (${p.Sigla}) espera-se que você dê ${p.nota.toFixed(
+                  2
+                )}</li>`
+            )
+            .join("") + "</ul>";       
+    }
+    </script>
+  <script>
+    // Declare order variable globally
+    var order = "inteligente";
+    function ShowMatchingProdutos() {
+      const produtosSelecionados = getProdutosSelecionados();
+      const resultadoDiv = document.getElementById("resultado");
+
+      if (produtosSelecionados.length === 0) {
+        resultadoDiv.textContent = "Nenhum produto selecionado.";
+        return;
+      }
+
+      // Chama a função para obter os produtores correspondentes
+      const produtoresSelecionados = getMatchingProducers(produtosSelecionados);
+
+      if (order === "qualidade") {
+        produtoresSelecionados.sort(
+          (a, b) => b.media_atendimento - a.media_atendimento
+        );
+      } else if(order === "distancia") {
+        produtoresSelecionados.sort((a, b) => a.Distancia - b.Distancia);
+      }
+    else if (order === "inteligente") {
+      // Ordena usando um score que combina distância (menor é melhor) e média de atendimento (maior é melhor)
+      // Normaliza ambos para 0-1 e pondera igualmente
+      const maxDist = Math.max(...produtoresSelecionados.map(p => p.Distancia));
+      const minDist = Math.min(...produtoresSelecionados.map(p => p.Distancia));
+      const maxMedia = Math.max(...produtoresSelecionados.map(p => p.media_atendimento));
+      const minMedia = Math.min(...produtoresSelecionados.map(p => p.media_atendimento));
+
+      produtoresSelecionados.sort((a, b) => {
+        // Normaliza distância (0 = melhor, 1 = pior)
+        const normDistA = (a.Distancia - minDist) / (maxDist - minDist || 1);
+        const normDistB = (b.Distancia - minDist) / (maxDist - minDist || 1);
+        // Normaliza média (1 = melhor, 0 = pior)
+        const normMediaA = (a.media_atendimento - minMedia) / (maxMedia - minMedia || 1);
+        const normMediaB = (b.media_atendimento - minMedia) / (maxMedia - minMedia || 1);
+
+        // Score: menor distância e maior média = score menor é melhor
+        const scoreA = normDistA - normMediaA;
+        const scoreB = normDistB - normMediaB;
+        return scoreA - scoreB;
+      });
+    }
+
+      if (produtoresSelecionados.length > 0) {
+        resultadoDiv.innerHTML =
+          "<div>Produtores recomendados:</div><ul style='columns:1;-webkit-columns:1;-moz-columns:1;'>" +
+          produtoresSelecionados
+            .map(
+              (p) =>
+                `<li>${p.Nome} (${p.Sigla}) a ${p.Distancia.toFixed(
+                  1
+                )}Km de você com média de atendimento ${p.media_atendimento.toFixed(
+                  2
+                )}</li>`
+            )
+            .join("") +
+          "</ul>";
+      } else {
+        resultadoDiv.textContent =
+          "Nenhum produtor encontrado para os produtos selecionados.";
+      }
+    }
+
+    document.querySelectorAll('input[name="produto"]').forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        ShowMatchingProdutos();
+      });
+    });
+  </script>
+
+  <div id="resultado" style="margin-top: 20px; font-weight: bold"></div>
+
+  <div class="slider-container">
+    <label for="distanceSlider">
+      Distância máxima: <span id="distanceValue">20</span> km
+    </label>
+    <input type="range" id="distanceSlider" min="1" max="80" value="20" />
+  </div>
+  <body>
+    <h1>Mapa de Produtores Locais</h1>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Dados passados pelo Flask -->
+    <script type="text/javascript">
+      var producers = {{ producers | tojson | safe }};
+      var locations = {{ locations | tojson | safe }};
+    </script>
+    </script>
+
+    <!-- Script do mapa -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const slider = document.getElementById("distanceSlider");
+        const valueDisplay = document.getElementById("distanceValue");
+        if (slider && valueDisplay) {
+          slider.addEventListener("input", function () {
+            valueDisplay.textContent = slider.value;
+            ShowMatchingProdutos();
+          });
+        }
+      });
+    </script>
+
+    <script>
+      //Mostra os produtos selecionados em lista
+      function showSelecionados() {
+        const produtosSelecionados = getProdutosSelecionados();
+        if (produtosSelecionados.length > 0) {
+          alert("Produtos selecionados: " + produtosSelecionados.join(", "));
+        } else {
+          alert("Nenhum produto selecionado.");
+        }
+      }
+    </script>
+  </body>
+</html>
